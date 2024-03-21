@@ -27,18 +27,24 @@ The __len__ method computes the number of batches per epoch, while __getitem__ f
 
 In terms of the model, I used a U-Net model style architecture, which is a popular architecture for image segmentation tasks. The U-Net model consists of a encoding path and a decoding path, which are connected by skip connections. The encoding and decoding path are also connected by a convolutional block as a bridge between the two paths. Each encoder block consists of a convolutional block followed by a 2x2 max pooling layer. Each decoder block consists of an transposed convolutional layer with a 3x3 kernel and a stride of 2 for upsampling followed by a concatenation with the corresponding encoder block to facilitate skip connections, and then 2 subsequent convolutional layers using a 3x3 kernel, ReLu activation, and same padding. The convolutional blocks consist of a convolutional layer with a 3x3 kernel, ReLu activation, same padding, and l2 regularization followed by a Dropout layer with a dropout rate of 0.4, and then follwoed by another convolutional layer with a 3x3 kernel, ReLu activation, same padding, and l2 regularization.
 
-The encoder part of the U-Net architecture consists of 4 encoder blocks, with 64, 128, 256, and 512 filters respectively. The bridge consists of a convolutional block with 1024 filters. The decoder part of the U-Net architecture consists of 4 decoder blocks, with 512, 256, 128, and 64 filters respectively. The output layer consists of a convolutional layer with 1 filter and a sigmoid activation function. The model is trained using the binary crossentropy loss function and the Adam optimizer with a learning rate of 0.0001. The model is trained for 200 epochs utilizing early stopping to prevent overfitting wiht a patience of 15 epochs. The model was evauluated using accuracy and the average IoU as the metrics, and the results were analyzed to determine the model's effectiveness.
+The encoder part of the U-Net architecture consists of 4 encoder blocks, with 64, 128, 256, and 512 filters respectively. The bridge consists of a convolutional block with 1024 filters. The decoder part of the U-Net architecture consists of 4 decoder blocks, with 512, 256, 128, and 64 filters respectively. The output layer consists of a convolutional layer with 1 filter and a sigmoid activation function. The model is trained using the binary crossentropy loss function and the Adam optimizer with the default starting learning rate. The model is trained for 100 epochs utilizing early stopping to prevent overfitting wiht a patience of 10 epochs. The model was evauluated using accuracy and the average IoU as the metrics, and the results were analyzed to determine the model's effectiveness.
 
 
 # Results and Discussion
 
+## Metrics
+
 |  Metric  |  Train |   Val  |
 |:--------:|:------:|:------:|
-|   Loss   | 0.2906 | 0.2894 |
-| Accuracy | 0.8686 | 0.8700 |
-|    IoU   | 0.6134 | 0.6149 |
+|   Loss   | 0.4071 | 0.4026 |
+| Accuracy | 0.8007 | 0.8062 |
+| Mean IoU | 0.3717 | 0.3696 |
 
-Looking at the data and metrics, both the training and validation set performed reasonably well, as the loss for both is relatively low at 0.2906 and 0.2894 for the training and validation sets respectively. In addition, the accuracy metric is also prety good on both the training and validation sets at 0.8686 and 0.8700 respectively. The IoU, or Intersection over Union, is decent at 0.6134 and 0.6149 respectively. An IoU of 0.6134 means that, on average, the overlap area between the predicted masks and the actual masks is 61.34% of their union area for that evaluation set. Similarly, an IoU of 0.6149 indicates a 61.49% overlap in that evaluation set. These scores suggest that the model has moderate to good performance in terms of accurately segmenting the objects of interest compared to the actual masks. 
+Looking at the data and metrics, both the training and validation set performed reasonably well, as the loss for both is relatively low at 0.4071 and 0.4026 for the training and validation sets respectively. In addition, the accuracy metric is also prety good on both the training and validation sets at 0.8007 and 0.8062 respectively. The IoU, or Intersection over Union, is not performing as well at 0.3717 and 0.3696 respectively. An IoU of 0.3717 means that, on average, the overlap area between the predicted masks and the actual masks is 37.17% of their union area for that evaluation set. Similarly, an IoU of 0.3696 indicates a 36.96% overlap in that evaluation set. These scores suggest that the model is performing reasonably well, but could be improved. The model is able to effectively segment images of food into the pixels that are the food in question or the pixels that are just the "background". The model is able to generalize to new images of food as there doesn't seem to be any indication of overfitting.
+
+![Metrics Over Time](training_metrics.png){width=700}
+
+The first graph indicates that the accuracy of the model on both the training and validation datasets improve with each epoch, but the validation accuracy does seem to fluctuate but generally increases, indicating learning. The second graph represents Model Loss, showing a downward trend in both training and validation loss, which is a good sign that the model is improving and learning to minimize the error over time. Finally, the third graph shows the IoU (Intersection over Union), which is a measure of the accuracy of object detection. In this graph, the IoU score remains relatively flat, suggesting that there might not be significant changes in how well the predicted masks overlap with the actual masks throughout training or is being influenced by an aspect of the data or model that is not changing across epochs.
 
 ## 3 Best 3 Worst Predictions
 
@@ -70,4 +76,18 @@ Image, Predicted Mask, and Actual Mask
 
 ![Image](best_worst_results/worst/img_72_26.png){width=200}
 ![Pred Mask](best_worst_results/worst/pred_mask_72_26.png){width=200}
-![Actual Mask](best_worst_results/worst/true_mask_72_26.png){width=200}
+![Actual Mask](best_worst_results/worst/true_mask_72_26.png){width=200}  
+
+## Grad-CAM Heatmaps
+
+![Heatmap of a Croissant](gradcam.png){width=250}
+
+The model seems to put high importance on the "ridges" of the coirssant, which is a good indication that the model is learning to identify the food in the image. 
+
+![Heatmap of a Cup of Coffee](gradcam2.png){width=250}
+
+The model seems to put high importance on the majority of the coffee cup, and some importance (yellow) on the sides of the cup. The actual coffee however is not as important to the model. 
+
+## Discussion and Conclusion
+
+This U-Net model was trained for the task of binary image segmentation, aiming to identify food items within images. Throughout the training process, various parameters were adjusted, such as the learning rate and utilizing different layers, to optimize performance. Metrics such as loss, accuracy, and Intersection over Union (IoU) were utilized to gauge the model's efficacy.The model demonstrated decent performance on the validation set, but the IoU metric indicated room for improvement in accurately capturing all relevant pixels belonging to food items. Given the complexity of the images and variability of the subjects (different food items), further tuning, potentially with deeper architectures or more accurate masks, might yield better results. In terms of deploying this model to production, careful consideration is necessary. While the model shows promise, the current level of performance is not sufficient for critical applications where high precision is mandatory. For non-critical applications that can tolerate some margin of error, such as initial filtering in a food social media app such as Yelp, this model might be adequate.In conclusion, this assignment was a good exercise in understand how to approach and implement image segmentation. 

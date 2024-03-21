@@ -24,6 +24,6 @@
 
 ### Instructions
 - a2_train.py is the main file to run. It will train the model and save the model to a file. The model will be saved to the same directory.
-- Once the model has been saved, the code will then shift to evaluating the model on the train and val data as those have been provided actual masks.
-- Set flag to True to evaluate, set flag to false to generate images of the masks to visualize the results of the model
-- best_worst.py is the file to run to generate the best and worst images from the validation set. It will generate the best and worst images based on the IoU score.
+- best_worst.py is the file to run to generate the 3 best and 3 worst images from the validation set. It will generate the best and worst images based on the IoU score.
+- plot_metrics.py is the file to run to generate the plots for the training and validation loss and accuracy.
+- grad_cam.py is the file to run to generate the Grad-CAM images for the model. It will generate the Grad-CAM images for an inputed image.

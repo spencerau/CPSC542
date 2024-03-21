@@ -2,6 +2,7 @@ import warnings
 import os
 import pathlib
 import hub
+import json
 
 from tensorflow.keras.utils import Sequence
 import numpy as np
@@ -26,11 +27,11 @@ from tensorflow.keras.callbacks import EarlyStopping
 # Suppress warnings
 warnings.filterwarnings('ignore')
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 
 
-export_dir = './a2_base_new/'
-gpu_device = '/device:GPU:1'
+export_dir = './a2_base/'
+gpu_device = '/device:GPU:4'
 EPOCHS = 100
 FT_EPOCHS = 50
 PATIENCE = 10
@@ -199,12 +200,11 @@ def build_and_compile_unet(input_shape, n_classes):
     # Adjusted for 498 classes
     #outputs = Conv2D(498, (1, 1), activation='softmax')(d1)
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(d1)
-
     
     model = Model(inputs=[inputs], outputs=[outputs])
     
     # added Mean IoU as an additional metric
-    model.compile(optimizer = Adam(1e-3), 
+    model.compile(optimizer = 'adam', 
               loss = 'binary_crossentropy', 
               metrics = ['accuracy', MeanIoU(num_classes=2)])
     
@@ -263,46 +263,11 @@ def save_model(model, export_dir):
     tflite_model_file.write_bytes(tflite_model)
 
 
-# Predict masks in smaller batches to avoid OOM errors.
-def predict_masks_in_small_batches(model, images, batch_size=8):
-    predicted_masks = []
-    for i in range(0, len(images), batch_size):
-        batch = images[i:i+batch_size]
-        preds = model.predict(batch)
-        predicted_masks.extend(preds)
-    return np.array(predicted_masks)
-
-
-def predict_and_visualize_masks(model, generator, num_samples):
-    images, true_masks = generator[0]  # Fetch the first batch
-    predicted_masks = predict_masks_in_small_batches(model, images[:num_samples])
-
-    save_dir = 'images'
-    os.makedirs(save_dir, exist_ok=True)
-    
-    for i in range(num_samples):
-        # Normalize the images to [0, 255] if they were preprocessed
-        image_to_save = (images[i] * 255).astype('uint8')
-        
-        # Ensure masks are boolean or in the range [0, 1] if using sigmoid
-        true_mask_to_save = true_masks[i].squeeze()  # Assuming true masks are already [0, 1]
-        predicted_mask_to_save = (predicted_masks[i].squeeze() > 0.5).astype('uint8')  # Threshold sigmoid outputs
-
-        # Save original image
-        plt.imsave(os.path.join(save_dir, f"image_{i}.png"), image_to_save)
-        
-        # Save true mask
-        plt.imsave(os.path.join(save_dir, f"true_mask_{i}.png"), true_mask_to_save, cmap='gray')
-        
-        # Save predicted mask
-        plt.imsave(os.path.join(save_dir, f"predicted_mask_{i}.png"), predicted_mask_to_save, cmap='gray')
-
-
 def main():
     # Directories
     ds_train = hub.dataset('hub/train')
     ds_val = hub.dataset('hub/val')
-    ds_test = hub.dataset('hub/test')
+    #ds_test = hub.dataset('hub/test')
 
     # Check if model already exists
     if not os.path.exists(export_dir):
@@ -316,7 +281,13 @@ def main():
 
             model = build_and_compile_unet(input_shape=(224, 224, 3), n_classes=n_classes)
 
-            history = train_model(model, train_generator, validation_generator, epochs=100)
+            history = train_model(model, train_generator, validation_generator, EPOCHS)
+
+            history_path = 'training_history.json' 
+            with open(history_path, 'w') as f:
+                json.dump(history.history, f, indent=4)
+
+            print(f"Training history saved to {history_path}")
 
             save_model(model, export_dir)
 
@@ -324,11 +295,11 @@ def main():
 
     else:
 
-        print("\nModel already exists. Loading model for evaluation.\n")
+        print("\nModel already exists. Loading model for evaluation or Masks\n")
 
         with tf.device(gpu_device):
 
-            flag = False
+            flag = True
             
             # Load the saved model
             model = tf.keras.models.load_model(export_dir)
@@ -336,27 +307,26 @@ def main():
             # preprocess and augment data
             train_generator = HubSegmentationDataGenerator(ds_train, batch_size=32, image_size=(224, 224), shuffle=True)
             validation_generator = HubSegmentationDataGenerator(ds_val, batch_size=32, image_size=(224, 224), shuffle=False)
-            if flag:
-                # Evaluate on validation data
-                val_loss, val_accuracy = model.evaluate(validation_generator)
-                print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_accuracy}")
-                val_iou_manual = calculate_iou(validation_generator, model)
-                print(f"Manual Validation IoU: {val_iou_manual}")
-        
-                # Evaluate on training data
-                train_loss, train_accuracy = model.evaluate(train_generator)
-                print(f"Training Loss: {train_loss}, Training Accuracy: {train_accuracy}")
-                train_iou_manual = calculate_iou(train_generator, model)
-                print(f"Manual Training IoU: {train_iou_manual}")
+            
+            # Evaluate on validation data
+            val_loss, val_accuracy = model.evaluate(validation_generator)
+            print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_accuracy}")
+            val_iou_manual = calculate_iou(validation_generator, model)
+            print(f"Manual Validation IoU: {val_iou_manual}")
+    
+            # Evaluate on training data
+            train_loss, train_accuracy = model.evaluate(train_generator)
+            print(f"Training Loss: {train_loss}, Training Accuracy: {train_accuracy}")
+            train_iou_manual = calculate_iou(train_generator, model)
+            print(f"Manual Training IoU: {train_iou_manual}")
 
-                # # Evaluate on validation data
-                # val_loss, val_accuracy = model.evaluate(validation_generator)
-                # print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_accuracy}")
-                # val_iou_manual = calculate_iou(validation_generator, model)
-                # print(f"Manual Validation IoU: {val_iou_manual}")
-
-            else:
-                predict_and_visualize_masks(model, validation_generator, 5)
+            # # Evaluate on validation data
+            # val_loss, val_accuracy = model.evaluate(validation_generator)
+            # print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_accuracy}")
+            # val_iou_manual = calculate_iou(validation_generator, model)
+            # print(f"Manual Validation IoU: {val_iou_manual}")
 
 
-main()
+
+if __name__ == "__main__":
+    main()
