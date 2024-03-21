@@ -281,14 +281,21 @@ def predict_and_visualize_masks(model, generator, num_samples):
     os.makedirs(save_dir, exist_ok=True)
     
     for i in range(num_samples):
+        # Normalize the images to [0, 255] if they were preprocessed
+        image_to_save = (images[i] * 255).astype('uint8')
+        
+        # Ensure masks are boolean or in the range [0, 1] if using sigmoid
+        true_mask_to_save = true_masks[i].squeeze()  # Assuming true masks are already [0, 1]
+        predicted_mask_to_save = (predicted_masks[i].squeeze() > 0.5).astype('uint8')  # Threshold sigmoid outputs
+
         # Save original image
-        plt.imsave(os.path.join(save_dir, f"image_{i}.png"), images[i].astype('uint8'))
+        plt.imsave(os.path.join(save_dir, f"image_{i}.png"), image_to_save)
         
         # Save true mask
-        plt.imsave(os.path.join(save_dir, f"true_mask_{i}.png"), true_masks[i].squeeze(), cmap='gray')
+        plt.imsave(os.path.join(save_dir, f"true_mask_{i}.png"), true_mask_to_save, cmap='gray')
         
         # Save predicted mask
-        plt.imsave(os.path.join(save_dir, f"predicted_mask_{i}.png"), predicted_masks[i].squeeze(), cmap='gray')
+        plt.imsave(os.path.join(save_dir, f"predicted_mask_{i}.png"), predicted_mask_to_save, cmap='gray')
 
 
 def main():

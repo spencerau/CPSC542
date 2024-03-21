@@ -38,22 +38,36 @@ The encoder part of the U-Net architecture consists of 4 encoder blocks, with 64
 | Accuracy | 0.8686 | 0.8700 |
 |    IoU   | 0.6134 | 0.6149 |
 
-Looking at the data and metrics, both the training and validation set performed reasonably well, as the loss for both is relatively low at 0.2906 and 0.2894 for the training and validation sets respectively. In addition, the accuracy metric is also prety good on both the training and validation sets at 0.8686 and 0.8700 respectively. The IoU, or Intersection over Union, is decent at 0.6134 and 0.6149 respectively. An IoU of 0.6134 means that, on average, the overlap area between the predicted masks and the actual masks is 61.34% of their union area for that evaluation set. Similarly, an IoU of 0.6149 indicates a 61.49% overlap in that evaluation set. These scores suggest that the model has moderate to good performance in terms of accurately segmenting the objects of interest compared to the actual masks. Below are some example segmentation images to visualize how the model has performed. Overall the model seems to be doing a pretty solid job of segmentating images, as the predicted masks vs the actual masks seem to be pretty close.
+Looking at the data and metrics, both the training and validation set performed reasonably well, as the loss for both is relatively low at 0.2906 and 0.2894 for the training and validation sets respectively. In addition, the accuracy metric is also prety good on both the training and validation sets at 0.8686 and 0.8700 respectively. The IoU, or Intersection over Union, is decent at 0.6134 and 0.6149 respectively. An IoU of 0.6134 means that, on average, the overlap area between the predicted masks and the actual masks is 61.34% of their union area for that evaluation set. Similarly, an IoU of 0.6149 indicates a 61.49% overlap in that evaluation set. These scores suggest that the model has moderate to good performance in terms of accurately segmenting the objects of interest compared to the actual masks. 
 
-![Image 2](images/image_2.png){width=250}
+## 3 Best 3 Worst Predictions
 
-![Image 2 Predicted Mask](images/predicted_mask_2.png){width=250}
+### 3 Best Predictions
 
-![Image 2 Actual Mask](images/true_mask_2.png){width=250}
+Image, Predicted Mask, and Actual Mask  
+![Image](best_worst_results/best/img_8_4.png){width=200}
+![Pred Mask](best_worst_results/best/pred_mask_8_4.png){width=200}
+![Actual Mask](best_worst_results/best/true_mask_8_4.png){width=200}
 
-![Image 3](images/image_3.png){width=250}
+![Image](best_worst_results/best/img_8_12.png){width=200}
+![Pred Mask](best_worst_results/best/pred_mask_8_12.png){width=200}
+![Actual Mask](best_worst_results/best/true_mask_8_12.png){width=200}
 
-![Image 3 Predicted Mask](images/predicted_mask_3.png){width=250}
+![Image](best_worst_results/best/img_8_18.png){width=200}
+![Pred Mask](best_worst_results/best/pred_mask_8_18.png){width=200}
+![Actual Mask](best_worst_results/best/true_mask_8_18.png){width=200}
 
-![Image 3 Actual Mask](images/true_mask_3.png){width=250}
+### 3 Worst Predictions
 
-![Image 4](images/image_4.png){width=250}
+Image, Predicted Mask, and Actual Mask  
+![Image](best_worst_results/worst/img_72_15.png){width=200}
+![Pred Mask](best_worst_results/worst/pred_mask_72_15.png){width=200}
+![Actual Mask](best_worst_results/worst/true_mask_72_15.png){width=200}
 
-![Image 4 Predicted Mask](images/predicted_mask_4.png){width=250}
+![Image](best_worst_results/worst/img_72_22.png){width=200}
+![Pred Mask](best_worst_results/worst/pred_mask_72_22.png){width=200}
+![Actual Mask](best_worst_results/worst/true_mask_72_22.png){width=200}
 
-![Image 4 Actual Mask](images/true_mask_4.png){width=250}
+![Image](best_worst_results/worst/img_72_26.png){width=200}
+![Pred Mask](best_worst_results/worst/pred_mask_72_26.png){width=200}
+![Actual Mask](best_worst_results/worst/true_mask_72_26.png){width=200}
