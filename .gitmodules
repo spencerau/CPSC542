@@ -1,0 +1,3 @@
+[submodule "Final Project/VideoViralityPredictor"]
+	path = Final Project/VideoViralityPredictor
+	url = https://github.com/dmcintosh11/VideoViralityPredictor.git
